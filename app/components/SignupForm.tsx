@@ -69,7 +69,7 @@ export default function SignupForm() {
                 <input
                     type="text"
                     name="name"
-                    placeholder="Name"
+                    placeholder="John Doe"
                     value={formdata.name}
                     onChange={handleChange}
                     className="w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -78,7 +78,7 @@ export default function SignupForm() {
                 <input
                     type="email"
                     name="email"
-                    placeholder="Email"
+                    placeholder="john@example.com"
                     value={formdata.email}
                     onChange={handleChange}
                     className="w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
