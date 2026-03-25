@@ -1,9 +1,11 @@
-import SignupForm from "../components/SignupForm";
+import SignupForm from "../components/signup/SignupForm";
+
 
 export default function Signup()
 {
     return(
-      <SignupForm  />
-      
+      <div className="flex flex-1 items-center justify-center px-4 py-12">
+        <SignupForm />
+      </div>
     )
 }
