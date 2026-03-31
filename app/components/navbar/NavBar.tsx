@@ -35,7 +35,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="sticky top-0 z-30 w-full bg-slate-900/80 text-white shadow-lg backdrop-blur"
+      className="sticky top-0 z-30 w-full bg-slate-700/80 text-white shadow-lg backdrop-blur"
       aria-label="Primary navigation"
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -50,9 +50,8 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.path}
-                className={`transition-colors hover:text-slate-200 ${
-                  isActive ? "font-semibold text-white underline underline-offset-4" : ""
-                }`}
+                className={`transition-colors hover:text-slate-200 ${isActive ? "font-semibold text-white underline underline-offset-4" : ""
+                  }`}
               >
                 {item.name}
               </Link>
@@ -84,9 +83,8 @@ export default function Navbar() {
                 <li key={item.name}>
                   <Link
                     href={item.path}
-                    className={`block w-full rounded px-2 py-2 transition-colors hover:bg-slate-800/80 hover:text-white ${
-                      isActive ? "font-semibold text-white underline underline-offset-4" : ""
-                    }`}
+                    className={`block w-full rounded px-2 py-2 transition-colors hover:bg-slate-800/80 hover:text-white ${isActive ? "font-semibold text-white underline underline-offset-4" : ""
+                      }`}
                     onClick={() => setIsOpen(false)}
                   >
                     {item.name}

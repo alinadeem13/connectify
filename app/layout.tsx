@@ -30,7 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Navbar />
-        <main className="min-h-screen pt-16">{children}</main>
+        <main className="min-h-[calc(100dvh-4rem)] overflow-x-hidden">{children}</main>
         <ToastContainer />
       </body>
     </html>
