@@ -1,7 +1,17 @@
 // mockPosts.ts
+const owners = [
+  "Ava Thompson",
+  "Liam Carter",
+  "Sophia Khan",
+  "Noah Bennett",
+  "Mia Rahman",
+];
+
 export const mockPosts = Array.from({ length: 20 }, (_, i) => ({
   id: i,
   title: `Post Title ${i + 1}`,
+  owner: owners[i % owners.length],
+  username: `connectify_user_${i + 1}`,
   caption: `This is caption for post ${i + 1}`,
   location: `City ${i + 1}`,
   people: ["Alice", "Bob"],

@@ -1,0 +1,117 @@
+{
+  "users": [
+    {
+      "id": "8ca13b1c-09af-4442-b588-1cdacdb142fb",
+      "name": "Ali Nadeem",
+      "email": "ali13nadeem@gmail.com",
+      "username": "ali13nadeem",
+      "role": "user",
+      "passwordHash": "fdd33197ac7eacb72650c01f87afbfc1:3f126b2223ba848e636c522dba14792a32f0091d7b766fad56836ce26280e0671b732199ac8f07e990353ef5375ac82e16750fc6a068c3bd6489e92aa745ab64",
+      "createdAt": "2026-04-15T11:14:43.619Z"
+    }
+  ],
+  "sessions": [
+    {
+      "token": "1a011d94-0353-42a5-8d53-6584b67f2869",
+      "userId": "8ca13b1c-09af-4442-b588-1cdacdb142fb",
+      "createdAt": "2026-04-15T11:22:41.115Z"
+    }
+  ],
+  "posts": [
+    {
+      "id": "post-1",
+      "title": "Sunset Walk",
+      "owner": "Ava Thompson",
+      "username": "ava.thompson",
+      "caption": "Golden hour walks always feel better when shared with friends.",
+      "location": "London",
+      "people": [
+        "Maya",
+        "Noah"
+      ],
+      "comments": [
+        {
+          "id": "comment-1",
+          "author": "Maya",
+          "text": "This view is beautiful.",
+          "createdAt": "2026-04-15T10:00:00.000Z"
+        },
+        {
+          "id": "comment-2",
+          "author": "Noah",
+          "text": "Love this vibe.",
+          "createdAt": "2026-04-15T10:05:00.000Z"
+        }
+      ],
+      "image": "/images/post1.jpg",
+      "createdAt": "2026-04-15T09:45:00.000Z"
+    },
+    {
+      "id": "post-2",
+      "title": "Weekend Meetup",
+      "owner": "Liam Carter",
+      "username": "liam.carter",
+      "caption": "A warm afternoon with the Connectify crew.",
+      "location": "Manchester",
+      "people": [
+        "Alice",
+        "Bob"
+      ],
+      "comments": [
+        {
+          "id": "comment-3",
+          "author": "Sophia",
+          "text": "Looks like such a fun meetup.",
+          "createdAt": "2026-04-15T11:00:00.000Z"
+        }
+      ],
+      "image": "/images/post2.jpg",
+      "createdAt": "2026-04-15T10:30:00.000Z"
+    },
+    {
+      "id": "post-3",
+      "title": "Creative Session",
+      "owner": "Sophia Khan",
+      "username": "sophia.khan",
+      "caption": "Planning new ideas together and building momentum.",
+      "location": "Birmingham",
+      "people": [
+        "Emma",
+        "James"
+      ],
+      "comments": [],
+      "image": "/images/post3.jpg",
+      "createdAt": "2026-04-15T12:00:00.000Z"
+    },
+    {
+      "id": "post-4",
+      "title": "Coffee Catch-up",
+      "owner": "Noah Bennett",
+      "username": "noah.bennett",
+      "caption": "Small moments and good coffee still count as quality time.",
+      "location": "Leeds",
+      "people": [
+        "Olivia",
+        "Lucas"
+      ],
+      "comments": [],
+      "image": "/images/post4.jpg",
+      "createdAt": "2026-04-15T13:15:00.000Z"
+    },
+    {
+      "id": "post-5",
+      "title": "Team Story",
+      "owner": "Mia Rahman",
+      "username": "mia.rahman",
+      "caption": "Sharing progress, stories, and support across the network.",
+      "location": "Glasgow",
+      "people": [
+        "Ava",
+        "Liam"
+      ],
+      "comments": [],
+      "image": "/images/post5.jpg",
+      "createdAt": "2026-04-15T14:10:00.000Z"
+    }
+  ]
+}
