@@ -1,57 +1,58 @@
-// components/PostCard.tsx
 'use client'
 
 import { useState } from "react";
-import { FiHeart, FiMessageCircle, FiSend, FiBookmark } from "react-icons/fi";
+import { FiBookmark, FiHeart, FiMessageCircle, FiSend } from "react-icons/fi";
+import { Comment, Post } from "@/lib/types";
 
-type Comment = {
-    id: number;
-    author: string;
-    text: string;
-};
-
-type PostProps = {
-    id: number;
-    title: string;
-    caption: string;
-    location: string;
-    people: string[];
-    image: string;
-    comments?: Comment[];
-};
-
-export default function PostCard({ post }: { post: PostProps }) {
+export default function PostCard({ post }: { post: Post }) {
     const [comments, setComments] = useState<Comment[]>(post.comments ?? []);
     const [commentInput, setCommentInput] = useState("");
     const [isCommentBoxOpen, setIsCommentBoxOpen] = useState(false);
+    const ownerInitial = post.owner.charAt(0).toUpperCase();
 
-    const handleAddComment = () => {
+    const handleAddComment = async () => {
         const trimmedComment = commentInput.trim();
-
         if (!trimmedComment) return;
 
-        setComments((prev) => [
-            ...prev,
-            {
-                id: Date.now(),
-                author: "You",
-                text: trimmedComment,
+        const response = await fetch(`/api/posts/${post.id}/comments`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
             },
-        ]);
+            body: JSON.stringify({ text: trimmedComment }),
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            return;
+        }
+
+        setComments(result.post.comments);
         setCommentInput("");
     };
 
     return (
         <article className="mx-auto w-full max-w-3xl overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/55 shadow-[0_18px_60px_rgba(2,6,23,0.45)] backdrop-blur">
-            <div className="border-b border-white/10 px-5 py-4 text-center sm:px-6">
-                <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:justify-between sm:text-left">
-                    <div>
-                        <h2 className="text-xl font-semibold text-white">{post.title}</h2>
-                        {post.location && <p className="mt-1 text-sm text-cyan-200">{post.location}</p>}
+            <div className="border-b border-white/10 px-5 py-4 sm:px-6">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 text-left">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 text-sm font-bold text-slate-950">
+                            {ownerInitial}
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-white">{post.owner}</p>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                                <span>@{post.username}</span>
+                                {post.location && <span className="text-cyan-200">{post.location}</span>}
+                            </div>
+                        </div>
                     </div>
-                    <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100">
-                        Shared now
-                    </span>
+                    <div className="text-right">
+                        <p className="text-sm font-semibold text-white">{post.title}</p>
+                        <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100">
+                            Shared now
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -125,7 +126,7 @@ export default function PostCard({ post }: { post: PostProps }) {
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter") {
                                         e.preventDefault();
-                                        handleAddComment();
+                                        void handleAddComment();
                                     }
                                 }}
                                 placeholder="Add a comment..."
@@ -133,7 +134,7 @@ export default function PostCard({ post }: { post: PostProps }) {
                             />
                             <button
                                 type="button"
-                                onClick={handleAddComment}
+                                onClick={() => void handleAddComment()}
                                 className="rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:from-sky-400 hover:to-cyan-300"
                             >
                                 Post

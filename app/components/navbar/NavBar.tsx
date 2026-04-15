@@ -12,10 +12,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: "Home", path: "/" },
-  // { name: "Dashboard", path: "/dashboard" },
   { name: "Login", path: "/login" },
   { name: "Signup", path: "/signup" },
-  { name: "Logout", path: "/Logout" },
+  { name: "Logout", path: "/logout" },
 ];
 
 export default function Navbar() {
@@ -23,15 +22,12 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsOpen(false);
+    await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
+    router.refresh();
   };
-
-  // Close mobile menu when route changes or viewport grows to desktop.
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 768px)");
@@ -50,7 +46,7 @@ export default function Navbar() {
           Connectify
         </Link>
 
-        <div className="hidden md:flex items-center space-x-6">
+        <div className="hidden items-center space-x-6 md:flex">
           {navItems.map((item) => {
             const isActive = pathname === item.path;
             if (item.name === "Logout") {
@@ -70,8 +66,7 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.path}
-                className={`transition-colors hover:text-slate-200 ${isActive ? "font-semibold text-white underline underline-offset-4" : ""
-                  }`}
+                className={`transition-colors hover:text-slate-200 ${isActive ? "font-semibold text-white underline underline-offset-4" : ""}`}
               >
                 {item.name}
               </Link>
@@ -84,7 +79,7 @@ export default function Navbar() {
           aria-expanded={isOpen}
           aria-controls="mobile-nav"
           aria-label={isOpen ? "Close menu" : "Open menu"}
-          className="md:hidden inline-flex items-center justify-center rounded p-2 hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-900"
+          className="inline-flex items-center justify-center rounded p-2 hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-900 md:hidden"
           onClick={() => setIsOpen((prev) => !prev)}
         >
           {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
@@ -94,9 +89,9 @@ export default function Navbar() {
       {isOpen && (
         <div
           id="mobile-nav"
-          className="md:hidden border-t border-white/10 bg-slate-900/90 backdrop-blur"
+          className="border-t border-white/10 bg-slate-900/90 backdrop-blur md:hidden"
         >
-          <ul className="flex flex-col px-4 py-3 space-y-3">
+          <ul className="flex flex-col space-y-3 px-4 py-3">
             {navItems.map((item) => {
               const isActive = pathname === item.path;
               if (item.name === "Logout") {
@@ -117,8 +112,7 @@ export default function Navbar() {
                 <li key={item.name}>
                   <Link
                     href={item.path}
-                    className={`block w-full rounded px-2 py-2 transition-colors hover:bg-slate-800/80 hover:text-white ${isActive ? "font-semibold text-white underline underline-offset-4" : ""
-                      }`}
+                    className={`block w-full rounded px-2 py-2 transition-colors hover:bg-slate-800/80 hover:text-white ${isActive ? "font-semibold text-white underline underline-offset-4" : ""}`}
                     onClick={() => setIsOpen(false)}
                   >
                     {item.name}

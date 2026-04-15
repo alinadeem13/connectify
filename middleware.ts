@@ -1,20 +1,23 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// This function can be marked `async` if using `await` inside
+const AUTH_COOKIE_NAME = "connectify_session";
+
 export function middleware(request: NextRequest) {
+  const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const { pathname } = request.nextUrl;
 
-const token = request.cookies.get("token")?.value;
+  if (!token && (pathname === "/" || pathname.startsWith("/dashboard"))) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
-// if (!token && request.nextUrl.pathname == "/") {
-//   return NextResponse.redirect(new URL("/login", request.url));
-// }
-// else if (token && request.nextUrl.pathname == "/login") {
-//   return NextResponse.redirect(new URL("/", request.url));
-// }
+  if (token && (pathname === "/login" || pathname === "/signup")) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
 
-
-
-
-    return NextResponse.next();
+  return NextResponse.next();
 }
+
+export const config = {
+  matcher: ["/", "/dashboard/:path*", "/login", "/signup"],
+};
