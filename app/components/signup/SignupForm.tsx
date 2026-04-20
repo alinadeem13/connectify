@@ -1,46 +1,46 @@
 'use client'
-
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState } from "react"
 import { toast } from "react-toastify";
 
 export default function SignupForm() {
-    const router = useRouter();
+    const router = useRouter()
+
     const [formdata, setFormdata] = useState({
         name: '',
         email: '',
         role: '',
         password: '',
         confirmPassword: '',
-    });
+    })
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormdata({
             ...formdata,
             [e.target.name]: e.target.value,
-        });
-    };
+        })
+    }
 
     const onSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (formdata.password !== formdata.confirmPassword) {
+        e.preventDefault()
+        if ((formdata.password !== formdata.confirmPassword)) {
             toast.error("Passwords do not match", {
                 position: "top-right",
                 autoClose: 5000,
-            });
-            return;
-        }
 
+            })
+
+
+            return
+        }
         if (formdata.password.length < 6) {
             toast.error("Password must be at least 6 characters long", {
                 position: "top-right",
                 autoClose: 5000,
-            });
-            return;
+            })
+            return
         }
-
-        try {
+        else {
             const response = await fetch("/api/auth/signup", {
                 method: "POST",
                 headers: {
@@ -55,35 +55,35 @@ export default function SignupForm() {
             });
 
             const result = await response.json();
+
             if (!response.ok) {
-                toast.error(result.message ?? "Unable to create account.", {
+                toast.error(result.message ?? "Signup failed.", {
                     position: "top-right",
                     autoClose: 5000,
-                });
-                return;
+                })
+                return
             }
 
             toast.success("Signup successful!", {
                 position: "top-right",
-                autoClose: 3000,
-            });
-
+                autoClose: 5000,
+            })
             setFormdata({
                 name: '',
                 email: '',
                 role: '',
                 password: '',
                 confirmPassword: '',
-            });
-            router.push('/');
-            router.refresh();
-        } catch {
-            toast.error("Something went wrong while creating your account.", {
-                position: "top-right",
-                autoClose: 5000,
-            });
+            })
+            router.push('/')
+            router.refresh()
+            return
+
+
         }
-    };
+        // Handle form submission logic here
+    }
+
 
     return (
         <div className="w-full max-w-md">
@@ -109,6 +109,7 @@ export default function SignupForm() {
                         className="w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white placeholder:text-slate-300 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
                         required
                     />
+                    {/* <label className="text-sm text-slate-400">Role</label> */}
                     <select
                         name="role"
                         value={formdata.role}
@@ -117,10 +118,12 @@ export default function SignupForm() {
                         required
                     >
                         <option value="">Select Role</option>
-                        <option value="user" className="bg-gray-500 text-white">Creator</option>
-                        <option value="admin" className="bg-gray-500 text-white">Consumer</option>
+                        <option value="creator" className="bg-gray-500 text-white">Creator</option>
+                        <option value="consumer" className="bg-gray-500 text-white">Consumer</option>
                     </select>
+
                     <input
+
                         type="password"
                         name="password"
                         placeholder="Password"

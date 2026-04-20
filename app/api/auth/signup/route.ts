@@ -2,43 +2,61 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { createSession, hashPassword } from "@/lib/auth";
 import { AUTH_COOKIE_NAME } from "@/lib/constants";
-import { readDb, writeDb } from "@/lib/db";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getSupabaseErrorMessage } from "@/lib/supabase-error";
+import { signupSchema } from "@/lib/validations";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const name = body.name?.trim();
-  const email = body.email?.trim().toLowerCase();
-  const role = body.role;
-  const password = body.password;
+  const parsed = signupSchema.safeParse(body);
 
-  if (!name || !email || !role || !password) {
-    return NextResponse.json({ message: "All fields are required." }, { status: 400 });
+  if (!parsed.success) {
+    return NextResponse.json({ message: parsed.error.issues[0]?.message ?? "Invalid signup data." }, { status: 400 });
   }
 
-  const db = await readDb();
-  const existingUser = db.users.find((user) => user.email === email);
+  const supabase = createSupabaseServerClient();
+  const { name, email, role, password } = parsed.data;
+
+  const { data: existingUser, error: existingUserError } = await supabase
+    .from("users")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (existingUserError) {
+    return NextResponse.json({ message: getSupabaseErrorMessage(existingUserError.message) }, { status: 500 });
+  }
 
   if (existingUser) {
     return NextResponse.json({ message: "An account with this email already exists." }, { status: 409 });
   }
 
-  const username = email.split("@")[0];
-  const user = {
-    id: randomUUID(),
+  const usernameBase = email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "");
+  const username = `${usernameBase}-${Math.random().toString(36).slice(2, 6)}`;
+  const userId = randomUUID();
+
+  const { error: insertError } = await supabase.from("users").insert({
+    id: userId,
     name,
     email,
     username,
     role,
-    passwordHash: hashPassword(password),
-    createdAt: new Date().toISOString(),
-  };
+    password_hash: hashPassword(password),
+  });
 
-  db.users.push(user);
-  await writeDb(db);
+  if (insertError) {
+    return NextResponse.json({ message: getSupabaseErrorMessage(insertError.message) }, { status: 500 });
+  }
 
-  const token = await createSession(user.id);
+  let token: string;
+  try {
+    token = await createSession(userId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to create session.";
+    return NextResponse.json({ message: getSupabaseErrorMessage(message) }, { status: 500 });
+  }
   const response = NextResponse.json({ message: "Signup successful." }, { status: 201 });
   response.cookies.set(AUTH_COOKIE_NAME, token, {
     httpOnly: true,

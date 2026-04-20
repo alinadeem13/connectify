@@ -35,6 +35,13 @@ export default function Feed() {
         };
 
         fetchPosts();
+
+        const handlePostCreated = () => {
+            void fetchPosts();
+        };
+
+        window.addEventListener("connectify:post-created", handlePostCreated);
+        return () => window.removeEventListener("connectify:post-created", handlePostCreated);
     }, []);
 
     useEffect(() => {
