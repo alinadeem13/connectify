@@ -1,7 +1,32 @@
+"use client";
+
 import Carousel from "./components/Carousel";
 import Feed from "./components/Feed";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+type CurrentUser = {
+    role: "creator" | "consumer";
+};
 
 export const HomePage = () => {
+    const [user, setUser] = useState<CurrentUser | null>(null);
+
+    useEffect(() => {
+        const loadUser = async () => {
+            const response = await fetch("/api/auth/me", { cache: "no-store" });
+            const result = await response.json();
+
+            if (response.ok) {
+                setUser(result.user);
+            }
+        };
+
+        void loadUser();
+    }, []);
+
+    const isCreator = user?.role === "creator";
+
     return (
         <div className="min-h-full w-full bg-[radial-gradient(circle_at_top,#12345c_0%,#0b1224_38%,#08101d_100%)] px-4 py-8 text-white sm:px-6 lg:px-8">
             <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-8">
@@ -18,6 +43,33 @@ export const HomePage = () => {
                 </section>
 
                 <section className="w-full rounded-[2rem] border border-white/10 bg-slate-900/55 p-4 shadow-2xl backdrop-blur sm:p-6">
+                    <div className="mb-6 flex flex-col gap-3 rounded-[1.5rem] border border-white/10 bg-slate-950/40 p-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="text-xl font-semibold text-white">Quick Actions</h2>
+                            <p className="text-sm text-slate-300">
+                                {isCreator
+                                    ? "Browse the live photo gallery or upload a new photo."
+                                    : "Browse the live photo gallery and join the conversation."}
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <Link
+                                href="/photos"
+                                className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/40 hover:text-white"
+                            >
+                                Open Gallery
+                            </Link>
+                            {isCreator && (
+                                <Link
+                                    href="/creator/upload"
+                                    className="rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:from-sky-400 hover:to-cyan-300"
+                                >
+                                    Upload Photo
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Optional: Stories carousel */}
                     <Carousel />
 

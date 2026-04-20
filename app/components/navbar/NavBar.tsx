@@ -10,21 +10,34 @@ interface NavItem {
   path: string;
 }
 
-const navItems: NavItem[] = [
+type CurrentUser = {
+  role: "creator" | "consumer";
+};
+
+const appNavItems: NavItem[] = [
   { name: "Home", path: "/" },
+  { name: "Photos", path: "/photos" },
+  { name: "Profile", path: "/profile" },
+  { name: "Upload", path: "/creator/upload" },
+  { name: "Logout", path: "/logout" },
+];
+
+const guestNavItems: NavItem[] = [
   { name: "Login", path: "/login" },
   { name: "Signup", path: "/signup" },
-  { name: "Logout", path: "/logout" },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<CurrentUser | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
 
   const handleLogout = async () => {
     setIsOpen(false);
     await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
     router.push("/login");
     router.refresh();
   };
@@ -36,18 +49,44 @@ export default function Navbar() {
     return () => media.removeEventListener("change", handleResize);
   }, []);
 
+  useEffect(() => {
+    const loadUser = async () => {
+      setIsLoadingUser(true);
+      const response = await fetch("/api/auth/me", { cache: "no-store" });
+      const result = await response.json();
+
+      if (response.ok) {
+        setUser(result.user);
+      } else {
+        setUser(null);
+      }
+      setIsLoadingUser(false);
+    };
+
+    void loadUser();
+  }, [pathname]);
+
+  const visibleNavItems = (user ? appNavItems : guestNavItems).filter((item) => {
+    if (item.name === "Upload") {
+      return user?.role === "creator";
+    }
+
+    return true;
+  });
+  const brandHref = user ? "/" : "/login";
+
   return (
     <nav
       className="sticky top-0 z-30 w-full bg-slate-700/80 text-white shadow-lg backdrop-blur"
       aria-label="Primary navigation"
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="shrink-0 text-2xl font-bold">
+        <Link href={brandHref} className="shrink-0 text-2xl font-bold">
           Connectify
         </Link>
 
         <div className="hidden items-center space-x-6 md:flex">
-          {navItems.map((item) => {
+          {!isLoadingUser && visibleNavItems.map((item) => {
             const isActive = pathname === item.path;
             if (item.name === "Logout") {
               return (
@@ -92,7 +131,7 @@ export default function Navbar() {
           className="border-t border-white/10 bg-slate-900/90 backdrop-blur md:hidden"
         >
           <ul className="flex flex-col space-y-3 px-4 py-3">
-            {navItems.map((item) => {
+            {!isLoadingUser && visibleNavItems.map((item) => {
               const isActive = pathname === item.path;
               if (item.name === "Logout") {
                 return (

@@ -16,9 +16,11 @@ export type Post = {
   comments: Comment[];
   image: string;
   createdAt: string;
+  averageRating?: number;
+  ratingCount?: number;
 };
 
-export type UserRole = "user" | "admin";
+export type UserRole = "creator" | "consumer";
 
 export type User = {
   id: string;
@@ -34,10 +36,4 @@ export type Session = {
   token: string;
   userId: string;
   createdAt: string;
-};
-
-export type Database = {
-  users: User[];
-  sessions: Session[];
-  posts: Post[];
 };
