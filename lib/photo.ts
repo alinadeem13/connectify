@@ -119,6 +119,21 @@ export async function getPostRowsById(id: string) {
   return result.recordset;
 }
 
+export async function getPostRowsByOwnerId(ownerId: string) {
+  const pool = await getSqlPool();
+  const result = await pool
+    .request()
+    .input("ownerId", sql.NVarChar(64), ownerId)
+    .query<PostRow>(`
+      SELECT id, title, caption, location, people_present, image_url, storage_path, uploaded_by_id, created_at
+      FROM dbo.posts
+      WHERE uploaded_by_id = @ownerId
+      ORDER BY created_at DESC
+    `);
+
+  return result.recordset;
+}
+
 export async function postExists(id: string) {
   const pool = await getSqlPool();
   const result = await pool

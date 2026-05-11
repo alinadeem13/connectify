@@ -23,6 +23,7 @@ const appNavItems: NavItem[] = [
 ];
 
 const guestNavItems: NavItem[] = [
+  { name: "Photos", path: "/photos" },
   { name: "Login", path: "/login" },
   { name: "Signup", path: "/signup" },
 ];
@@ -73,7 +74,7 @@ export default function Navbar() {
 
     return true;
   });
-  const brandHref = user ? "/" : "/login";
+  const brandHref = "/";
 
   return (
     <nav

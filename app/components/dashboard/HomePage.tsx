@@ -1,16 +1,19 @@
 "use client";
 
 import Carousel from "./components/Carousel";
+import CreatorDashboard from "./components/CreatorDashboard";
 import Feed from "./components/Feed";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type CurrentUser = {
+    name: string;
     role: "creator" | "consumer";
 };
 
 export const HomePage = () => {
     const [user, setUser] = useState<CurrentUser | null>(null);
+    const [loadingUser, setLoadingUser] = useState(true);
 
     useEffect(() => {
         const loadUser = async () => {
@@ -20,6 +23,8 @@ export const HomePage = () => {
             if (response.ok) {
                 setUser(result.user);
             }
+
+            setLoadingUser(false);
         };
 
         void loadUser();
@@ -35,47 +40,47 @@ export const HomePage = () => {
                         Connectify Feed
                     </span>
                     <h1 className="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-                        Explore people, places, and moments from your global circle.
+                        {isCreator ? `Welcome back, ${user?.name ?? "creator"}.` : "Explore people, places, and moments from your global circle."}
                     </h1>
                     <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
-                        A brighter, clearer dashboard experience with stories up top and a cleaner social feed below.
+                        {isCreator
+                            ? "Review your uploads, ratings, and audience activity from one Azure-powered creator view."
+                            : "A brighter, clearer dashboard experience with stories up top and a cleaner social feed below."}
                     </p>
                 </section>
 
-                <section className="w-full rounded-[2rem] border border-white/10 bg-slate-900/55 p-4 shadow-2xl backdrop-blur sm:p-6">
-                    <div className="mb-6 flex flex-col gap-3 rounded-[1.5rem] border border-white/10 bg-slate-950/40 p-5 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h2 className="text-xl font-semibold text-white">Quick Actions</h2>
-                            <p className="text-sm text-slate-300">
-                                {isCreator
-                                    ? "Browse the live photo gallery or upload a new photo."
-                                    : "Browse the live photo gallery and join the conversation."}
-                            </p>
-                        </div>
-                        <div className="flex gap-3">
-                            <Link
-                                href="/photos"
-                                className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/40 hover:text-white"
-                            >
-                                Open Gallery
-                            </Link>
-                            {isCreator && (
+                {loadingUser ? (
+                    <section className="w-full rounded-[2rem] border border-white/10 bg-slate-900/55 p-8 text-center text-cyan-200 shadow-2xl">
+                        Loading dashboard...
+                    </section>
+                ) : isCreator ? (
+                    <CreatorDashboard />
+                ) : (
+                    <section className="w-full rounded-[2rem] border border-white/10 bg-slate-900/55 p-4 shadow-2xl backdrop-blur sm:p-6">
+                        <div className="mb-6 flex flex-col gap-3 rounded-[1.5rem] border border-white/10 bg-slate-950/40 p-5 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h2 className="text-xl font-semibold text-white">Quick Actions</h2>
+                                <p className="text-sm text-slate-300">
+                                    Browse the live photo gallery and join the conversation.
+                                </p>
+                            </div>
+                            <div className="flex gap-3">
                                 <Link
-                                    href="/creator/upload"
-                                    className="rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:from-sky-400 hover:to-cyan-300"
+                                    href="/photos"
+                                    className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/40 hover:text-white"
                                 >
-                                    Upload Photo
+                                    Open Gallery
                                 </Link>
-                            )}
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Optional: Stories carousel */}
-                    <Carousel />
+                        {/* Optional: Stories carousel */}
+                        <Carousel />
 
-                    {/* Feed with lazy loading */}
-                    <Feed />
-                </section>
+                        {/* Feed with lazy loading */}
+                        <Feed />
+                    </section>
+                )}
             </div>
         </div>
     );
