@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from "react";
-import supabase from "@/lib/supabase";
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
@@ -20,20 +19,20 @@ export default function UploadPage() {
     setImageUrl("");
 
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      const formData = new FormData();
+      formData.append("file", file);
 
-      const { error: uploadError } = await supabase.storage
-        .from("images")
-        .upload(fileName, file);
+      const response = await fetch("/api/photos/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
 
-      if (uploadError) {
-        throw uploadError;
+      if (!response.ok) {
+        throw new Error(result.message ?? "Upload failed.");
       }
 
-      const { data } = supabase.storage.from("images").getPublicUrl(fileName);
-
-      setImageUrl(data.publicUrl);
+      setImageUrl(result.imageUrl);
     } catch (err) {
       setError(err.message || "Upload failed.");
     } finally {
@@ -46,7 +45,7 @@ export default function UploadPage() {
       <div className="mx-auto w-full max-w-2xl rounded-[2rem] border border-white/10 bg-slate-950/50 p-8 shadow-2xl backdrop-blur">
         <h1 className="text-3xl font-bold">Upload Image</h1>
         <p className="mt-2 text-slate-300">
-          Select an image and upload it to Supabase Storage.
+          Select an image and upload it to Azure Blob Storage.
         </p>
 
         <div className="mt-6 space-y-4">

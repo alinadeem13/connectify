@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { hydratePosts } from "@/lib/photo";
+import { getSqlPool, sql } from "@/lib/azure-sql";
+import { getPostRowsById, hydratePosts, postExists } from "@/lib/photo";
 import { createRatingSchema } from "@/lib/validations";
 
 export const runtime = "nodejs";
@@ -25,62 +25,38 @@ export async function POST(
   }
 
   const { id } = await context.params;
-  const supabase = createSupabaseServerClient();
+  const pool = await getSqlPool();
 
-  const { data: photo, error: photoError } = await supabase
-    .from("posts")
-    .select("id")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (photoError) {
-    return NextResponse.json({ message: photoError.message }, { status: 500 });
-  }
-
-  if (!photo) {
+  if (!(await postExists(id))) {
     return NextResponse.json({ message: "Photo not found." }, { status: 404 });
   }
 
-  const { data: existingRating, error: existingRatingError } = await supabase
-    .from("ratings")
-    .select("id")
-    .eq("post_id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (existingRatingError) {
-    return NextResponse.json({ message: existingRatingError.message }, { status: 500 });
-  }
+  const existingRatingResult = await pool
+    .request()
+    .input("postId", sql.NVarChar(64), id)
+    .input("userId", sql.NVarChar(64), user.id)
+    .query<{ id: string }>("SELECT TOP 1 id FROM dbo.ratings WHERE post_id = @postId AND user_id = @userId");
+  const existingRating = existingRatingResult.recordset[0];
 
   if (existingRating) {
-    const { error: updateError } = await supabase
-      .from("ratings")
-      .update({ value: parsed.data.value })
-      .eq("id", existingRating.id);
-
-    if (updateError) {
-      return NextResponse.json({ message: updateError.message }, { status: 500 });
-    }
+    await pool
+      .request()
+      .input("id", sql.NVarChar(64), existingRating.id)
+      .input("value", sql.Int, parsed.data.value)
+      .query("UPDATE dbo.ratings SET value = @value WHERE id = @id");
   } else {
-    const { error: insertError } = await supabase.from("ratings").insert({
-      id: randomUUID(),
-      value: parsed.data.value,
-      post_id: id,
-      user_id: user.id,
-    });
-
-    if (insertError) {
-      return NextResponse.json({ message: insertError.message }, { status: 500 });
-    }
+    await pool
+      .request()
+      .input("id", sql.NVarChar(64), randomUUID())
+      .input("value", sql.Int, parsed.data.value)
+      .input("postId", sql.NVarChar(64), id)
+      .input("userId", sql.NVarChar(64), user.id)
+      .query("INSERT INTO dbo.ratings (id, value, post_id, user_id) VALUES (@id, @value, @postId, @userId)");
   }
 
-  const { data: photoRows, error: fetchError } = await supabase
-    .from("posts")
-    .select("id, title, caption, location, people_present, image_url, storage_path, uploaded_by_id, created_at")
-    .eq("id", id);
-
-  if (fetchError || !photoRows || photoRows.length === 0) {
-    return NextResponse.json({ message: fetchError?.message ?? "Photo not found." }, { status: 500 });
+  const photoRows = await getPostRowsById(id);
+  if (photoRows.length === 0) {
+    return NextResponse.json({ message: "Photo not found." }, { status: 500 });
   }
 
   const [updatedPost] = await hydratePosts(photoRows);
