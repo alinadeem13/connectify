@@ -1,16 +1,22 @@
 # Connectify
 
-Beginner-friendly Next.js social photo app using Supabase only.
+Beginner-friendly Next.js social photo app using Azure SQL Database and Azure Blob Storage.
 
 Required environment variables:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=""
-NEXT_PUBLIC_SUPABASE_ANON_KEY=""
+AZURE_STORAGE_CONNECTION_STRING=""
+AZURE_STORAGE_CONTAINER_NAME="images"
+AZURE_STORAGE_PUBLIC_BASE_URL=""
+
+AZURE_SQL_SERVER=""
+AZURE_SQL_DATABASE=""
+AZURE_SQL_USER=""
+AZURE_SQL_PASSWORD=""
 ```
 
-The app uses Supabase tables for users, sessions, posts, comments, and ratings. Image uploads use a public Supabase Storage bucket named `images`.
+The app uses Azure SQL Database tables for users, sessions, posts, comments, and ratings. Image uploads use an Azure Blob Storage container named `images`.
 
-Run `supabase/schema.sql` in the Supabase SQL editor to create the tables, indexes, bucket, and simple public image upload/read policies.
+Run `azure/schema.sql` in the Azure SQL Query Editor to create the tables and indexes.
 
-If signup says `Could not find the table 'public.users' in the schema cache`, the SQL has not been run in the Supabase project connected by your `.env.local` values, or the REST schema cache has not refreshed yet. Run the full schema file again.
+The storage account should allow blob anonymous access, and the `images` container should use blob-level public read access. Uploads are still server-side only through the Next.js API route, using `AZURE_STORAGE_CONNECTION_STRING`.

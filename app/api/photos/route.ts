@@ -1,43 +1,20 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { hydratePosts } from "@/lib/photo";
+import { getSqlPool, sql } from "@/lib/azure-sql";
+import { getPhotoFeedRows, getPostRowsById, hydratePosts } from "@/lib/photo";
 import { createPhotoSchema } from "@/lib/validations";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const supabase = createSupabaseServerClient();
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.trim();
   const location = searchParams.get("location")?.trim();
   const person = searchParams.get("person")?.trim();
 
-  let dbQuery = supabase
-    .from("posts")
-    .select("id, title, caption, location, people_present, image_url, storage_path, uploaded_by_id, created_at")
-    .order("created_at", { ascending: false });
-
-  if (query) {
-    dbQuery = dbQuery.or(`title.ilike.%${query}%,caption.ilike.%${query}%`);
-  }
-
-  if (location) {
-    dbQuery = dbQuery.ilike("location", `%${location}%`);
-  }
-
-  if (person) {
-    dbQuery = dbQuery.contains("people_present", [person]);
-  }
-
-  const { data, error } = await dbQuery;
-
-  if (error) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
-  }
-
-  const posts = await hydratePosts(data ?? []);
+  const data = await getPhotoFeedRows({ query, location, person });
+  const posts = await hydratePosts(data);
   return NextResponse.json({ photos: posts, posts });
 }
 
@@ -59,31 +36,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: parsed.error.issues[0]?.message ?? "Invalid photo data." }, { status: 400 });
   }
 
-  const supabase = createSupabaseServerClient();
+  const pool = await getSqlPool();
   const photoId = randomUUID();
 
-  const { error: insertError } = await supabase.from("posts").insert({
-    id: photoId,
-    title: parsed.data.title,
-    caption: parsed.data.caption,
-    location: parsed.data.location,
-    people_present: parsed.data.peoplePresent,
-    image_url: parsed.data.imageUrl,
-    storage_path: parsed.data.storagePath,
-    uploaded_by_id: user.id,
-  });
+  await pool
+    .request()
+    .input("id", sql.NVarChar(64), photoId)
+    .input("title", sql.NVarChar(255), parsed.data.title)
+    .input("caption", sql.NVarChar(sql.MAX), parsed.data.caption)
+    .input("location", sql.NVarChar(255), parsed.data.location)
+    .input("peoplePresent", sql.NVarChar(sql.MAX), JSON.stringify(parsed.data.peoplePresent))
+    .input("imageUrl", sql.NVarChar(1000), parsed.data.imageUrl)
+    .input("storagePath", sql.NVarChar(1000), parsed.data.storagePath)
+    .input("uploadedById", sql.NVarChar(64), user.id)
+    .query(`
+      INSERT INTO dbo.posts (id, title, caption, location, people_present, image_url, storage_path, uploaded_by_id)
+      VALUES (@id, @title, @caption, @location, @peoplePresent, @imageUrl, @storagePath, @uploadedById)
+    `);
 
-  if (insertError) {
-    return NextResponse.json({ message: insertError.message }, { status: 500 });
-  }
-
-  const { data: photoRows, error: fetchError } = await supabase
-    .from("posts")
-    .select("id, title, caption, location, people_present, image_url, storage_path, uploaded_by_id, created_at")
-    .eq("id", photoId);
-
-  if (fetchError || !photoRows || photoRows.length === 0) {
-    return NextResponse.json({ message: fetchError?.message ?? "Photo could not be loaded." }, { status: 500 });
+  const photoRows = await getPostRowsById(photoId);
+  if (photoRows.length === 0) {
+    return NextResponse.json({ message: "Photo could not be loaded." }, { status: 500 });
   }
 
   const [post] = await hydratePosts(photoRows);

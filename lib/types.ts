@@ -29,6 +29,8 @@ export type User = {
   username: string;
   role: UserRole;
   passwordHash: string;
+  avatarUrl?: string | null;
+  avatarStoragePath?: string | null;
   createdAt: string;
 };
 

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import supabase from "@/lib/supabase";
 
 type CurrentUser = {
     id: string;
@@ -49,19 +48,19 @@ export default function UploadPhotoForm() {
         setSubmitting(true);
 
         try {
-            const fileExt = selectedFile.name.split(".").pop();
-            const fileName = `${Date.now()}.${fileExt}`;
+            const uploadFormData = new FormData();
+            uploadFormData.append("file", selectedFile);
 
-            const { error: uploadError } = await supabase.storage
-                .from("images")
-                .upload(fileName, selectedFile);
+            const uploadResponse = await fetch("/api/photos/upload", {
+                method: "POST",
+                body: uploadFormData,
+            });
+            const uploadResult = await uploadResponse.json();
 
-            if (uploadError) {
-                toast.error(uploadError.message ?? "Image upload failed.");
+            if (!uploadResponse.ok) {
+                toast.error(uploadResult.message ?? "Image upload failed.");
                 return;
             }
-
-            const { data } = supabase.storage.from("images").getPublicUrl(fileName);
 
             const photoResponse = await fetch("/api/photos", {
                 method: "POST",
@@ -73,8 +72,8 @@ export default function UploadPhotoForm() {
                     caption: form.caption,
                     location: form.location,
                     peoplePresent: form.peoplePresent.split(",").map((value) => value.trim()).filter(Boolean),
-                    imageUrl: data.publicUrl,
-                    storagePath: fileName,
+                    imageUrl: uploadResult.imageUrl,
+                    storagePath: uploadResult.storagePath,
                 }),
             });
             const photoResult = await photoResponse.json();

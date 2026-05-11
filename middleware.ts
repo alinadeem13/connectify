@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/photos", request.url));
   }
 
-  if (!token && (pathname === "/" || pathname.startsWith("/dashboard") || pathname.startsWith("/photos") || pathname.startsWith("/creator") || pathname.startsWith("/profile"))) {
+  if (!token && (pathname.startsWith("/dashboard") || pathname.startsWith("/creator") || pathname.startsWith("/profile"))) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -19,5 +19,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/photos/:path*", "/creator/:path*", "/profile/:path*", "/login", "/signup"],
+  matcher: ["/dashboard/:path*", "/creator/:path*", "/profile/:path*", "/login", "/signup"],
 };

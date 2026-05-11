@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { hydratePosts } from "@/lib/photo";
+import { getSqlPool, sql } from "@/lib/azure-sql";
+import { getPostRowsById, hydratePosts, postExists } from "@/lib/photo";
 import { createCommentSchema } from "@/lib/validations";
 
 export const runtime = "nodejs";
@@ -25,40 +25,23 @@ export async function POST(
   }
 
   const { id } = await context.params;
-  const supabase = createSupabaseServerClient();
+  const pool = await getSqlPool();
 
-  const { data: photo, error: photoError } = await supabase
-    .from("posts")
-    .select("id")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (photoError) {
-    return NextResponse.json({ message: photoError.message }, { status: 500 });
-  }
-
-  if (!photo) {
+  if (!(await postExists(id))) {
     return NextResponse.json({ message: "Photo not found." }, { status: 404 });
   }
 
-  const { error: commentError } = await supabase.from("comments").insert({
-    id: randomUUID(),
-    text: parsed.data.text,
-    post_id: id,
-    user_id: user.id,
-  });
+  await pool
+    .request()
+    .input("id", sql.NVarChar(64), randomUUID())
+    .input("text", sql.NVarChar(sql.MAX), parsed.data.text)
+    .input("postId", sql.NVarChar(64), id)
+    .input("userId", sql.NVarChar(64), user.id)
+    .query("INSERT INTO dbo.comments (id, text, post_id, user_id) VALUES (@id, @text, @postId, @userId)");
 
-  if (commentError) {
-    return NextResponse.json({ message: commentError.message }, { status: 500 });
-  }
-
-  const { data: photoRows, error: fetchError } = await supabase
-    .from("posts")
-    .select("id, title, caption, location, people_present, image_url, storage_path, uploaded_by_id, created_at")
-    .eq("id", id);
-
-  if (fetchError || !photoRows || photoRows.length === 0) {
-    return NextResponse.json({ message: fetchError?.message ?? "Photo not found." }, { status: 500 });
+  const photoRows = await getPostRowsById(id);
+  if (photoRows.length === 0) {
+    return NextResponse.json({ message: "Photo not found." }, { status: 500 });
   }
 
   const [updatedPost] = await hydratePosts(photoRows);

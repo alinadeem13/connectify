@@ -9,6 +9,8 @@ type CurrentUser = {
   email: string;
   username: string;
   role: "creator" | "consumer";
+  avatarUrl?: string | null;
+  avatarStoragePath?: string | null;
   createdAt: string;
 };
 
@@ -16,6 +18,8 @@ export default function ProfileForm() {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<File | null>(null);
   const [form, setForm] = useState({
     name: "",
     username: "",
@@ -68,6 +72,39 @@ export default function ProfileForm() {
     }
   };
 
+  const handleAvatarUpload = async () => {
+    if (!selectedAvatar) {
+      toast.error("Please select an image first.");
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("avatar", selectedAvatar);
+
+      const response = await fetch("/api/auth/me/avatar", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.message ?? "Profile picture upload failed.");
+        return;
+      }
+
+      setUser(result.user);
+      setSelectedAvatar(null);
+      toast.success("Profile picture updated.");
+    } catch {
+      toast.error("Something went wrong while uploading your profile picture.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   if (loading) {
     return <p className="text-center text-cyan-200">Loading profile...</p>;
   }
@@ -79,9 +116,17 @@ export default function ProfileForm() {
   return (
     <div className="mx-auto grid w-full max-w-5xl gap-6 lg:grid-cols-[0.8fr_1.2fr]">
       <section className="rounded-[1.75rem] border border-white/10 bg-slate-950/40 p-6 shadow-xl backdrop-blur">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 text-3xl font-bold text-slate-950">
-          {user.name.charAt(0).toUpperCase()}
-        </div>
+        {user.avatarUrl ? (
+          <img
+            src={user.avatarUrl}
+            alt={`${user.name}'s profile picture`}
+            className="h-24 w-24 rounded-full border border-cyan-300/30 object-cover shadow-lg"
+          />
+        ) : (
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 text-3xl font-bold text-slate-950">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <h1 className="mt-5 text-3xl font-bold text-white">{user.name}</h1>
         <p className="mt-1 text-cyan-200">@{user.username}</p>
 
@@ -96,6 +141,26 @@ export default function ProfileForm() {
             <span className="font-semibold text-white">Joined:</span>{" "}
             {new Date(user.createdAt).toLocaleDateString()}
           </p>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <label className="grid gap-2 text-sm font-medium text-slate-200">
+            Profile picture
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) => setSelectedAvatar(event.target.files?.[0] ?? null)}
+              className="rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2 text-sm text-white file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-400/20 file:px-3 file:py-1 file:text-cyan-100"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => void handleAvatarUpload()}
+            disabled={uploadingAvatar || !selectedAvatar}
+            className="mt-3 w-full rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {uploadingAvatar ? "Uploading..." : "Update Picture"}
+          </button>
         </div>
       </section>
 
