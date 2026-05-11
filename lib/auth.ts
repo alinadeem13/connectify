@@ -64,8 +64,10 @@ export async function getCurrentUser(): Promise<User | null> {
       username: string;
       role: "creator" | "consumer";
       password_hash: string;
+      avatar_url: string | null;
+      avatar_storage_path: string | null;
       created_at: Date;
-    }>("SELECT TOP 1 id, name, email, username, role, password_hash, created_at FROM dbo.users WHERE id = @userId");
+    }>("SELECT TOP 1 id, name, email, username, role, password_hash, avatar_url, avatar_storage_path, created_at FROM dbo.users WHERE id = @userId");
 
   const user = userResult.recordset[0];
   if (!user) {
@@ -79,6 +81,8 @@ export async function getCurrentUser(): Promise<User | null> {
     username: user.username,
     role: user.role,
     passwordHash: user.password_hash,
+    avatarUrl: user.avatar_url,
+    avatarStoragePath: user.avatar_storage_path,
     createdAt: user.created_at.toISOString(),
   };
 }

@@ -13,6 +13,7 @@ export default function SignupForm() {
         password: '',
         confirmPassword: '',
     })
+    const [avatarFile, setAvatarFile] = useState<File | null>(null)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormdata({
@@ -41,17 +42,16 @@ export default function SignupForm() {
             return
         }
         else {
+            const signupData = new FormData();
+            signupData.append("name", formdata.name);
+            signupData.append("email", formdata.email);
+            signupData.append("role", formdata.role);
+            signupData.append("password", formdata.password);
+            if (avatarFile) signupData.append("avatar", avatarFile);
+
             const response = await fetch("/api/auth/signup", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    name: formdata.name,
-                    email: formdata.email,
-                    role: formdata.role,
-                    password: formdata.password,
-                }),
+                body: signupData,
             });
 
             const result = await response.json();
@@ -75,6 +75,7 @@ export default function SignupForm() {
                 password: '',
                 confirmPassword: '',
             })
+            setAvatarFile(null)
             router.push('/')
             router.refresh()
             return
@@ -109,6 +110,15 @@ export default function SignupForm() {
                         className="w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white placeholder:text-slate-300 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
                         required
                     />
+                    <label className="grid gap-2 text-sm text-slate-200">
+                        Profile picture <span className="text-xs text-slate-400">(optional)</span>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(event) => setAvatarFile(event.target.files?.[0] ?? null)}
+                            className="w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white file:mr-3 file:rounded-md file:border-0 file:bg-cyan-400/20 file:px-3 file:py-1 file:text-cyan-100 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
+                        />
+                    </label>
                     {/* <label className="text-sm text-slate-400">Role</label> */}
                     <select
                         name="role"

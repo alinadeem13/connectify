@@ -11,7 +11,9 @@ interface NavItem {
 }
 
 type CurrentUser = {
+  name: string;
   role: "creator" | "consumer";
+  avatarUrl?: string | null;
 };
 
 const appNavItems: NavItem[] = [
@@ -87,6 +89,18 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center space-x-6 md:flex">
+          {!isLoadingUser && user && (
+            <Link href="/profile" className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 transition hover:bg-white/10">
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 text-sm font-bold text-slate-950">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              )}
+              <span className="text-sm capitalize text-slate-100">{user.role}</span>
+            </Link>
+          )}
           {!isLoadingUser && visibleNavItems.map((item) => {
             const isActive = pathname === item.path;
             if (item.name === "Logout") {

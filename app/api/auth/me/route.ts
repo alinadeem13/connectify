@@ -19,6 +19,8 @@ export async function GET() {
       email: user.email,
       username: user.username,
       role: user.role,
+      avatarUrl: user.avatarUrl,
+      avatarStoragePath: user.avatarStoragePath,
       createdAt: user.createdAt,
     },
   });
@@ -63,11 +65,13 @@ export async function PUT(request: Request) {
       email: string;
       username: string;
       role: "creator" | "consumer";
+      avatar_url: string | null;
+      avatar_storage_path: string | null;
       created_at: Date;
     }>(`
       UPDATE dbo.users
       SET name = @name, username = @username
-      OUTPUT inserted.id, inserted.name, inserted.email, inserted.username, inserted.role, inserted.created_at
+      OUTPUT inserted.id, inserted.name, inserted.email, inserted.username, inserted.role, inserted.avatar_url, inserted.avatar_storage_path, inserted.created_at
       WHERE id = @userId
     `);
   const updatedUser = updateResult.recordset[0];
@@ -79,6 +83,8 @@ export async function PUT(request: Request) {
       email: updatedUser.email,
       username: updatedUser.username,
       role: updatedUser.role,
+      avatarUrl: updatedUser.avatar_url,
+      avatarStoragePath: updatedUser.avatar_storage_path,
       createdAt: updatedUser.created_at.toISOString(),
     },
   });

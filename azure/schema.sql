@@ -5,6 +5,8 @@ CREATE TABLE dbo.users (
   username NVARCHAR(255) NOT NULL UNIQUE,
   password_hash NVARCHAR(255) NOT NULL,
   role NVARCHAR(20) NOT NULL CHECK (role IN ('creator', 'consumer')),
+  avatar_url NVARCHAR(1000) NULL,
+  avatar_storage_path NVARCHAR(1000) NULL,
   created_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
 );
 

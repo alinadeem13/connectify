@@ -14,14 +14,16 @@ function getStorageContainerClient() {
   return blobServiceClient.getContainerClient(containerName);
 }
 
-function getSafeBlobName(fileName: string) {
+function getSafeBlobName(fileName: string, folder = "") {
   const cleanedName = fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
-  return `${Date.now()}-${randomUUID()}-${cleanedName}`;
+  const cleanedFolder = folder.replace(/[^a-zA-Z0-9/_-]/g, "").replace(/^\/+|\/+$/g, "");
+  const blobName = `${Date.now()}-${randomUUID()}-${cleanedName}`;
+  return cleanedFolder ? `${cleanedFolder}/${blobName}` : blobName;
 }
 
-export async function uploadImageToAzure(file: File) {
+export async function uploadImageToAzure(file: File, folder = "") {
   const containerClient = getStorageContainerClient();
-  const blobName = getSafeBlobName(file.name || "upload");
+  const blobName = getSafeBlobName(file.name || "upload", folder);
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
   const buffer = Buffer.from(await file.arrayBuffer());
 
